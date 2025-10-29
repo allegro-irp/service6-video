@@ -16,13 +16,15 @@ type Handler func(ctx context.Context, w http.ResponseWriter, r *http.Request) e
 // object for each of our http handlers. Feel free to add any configuration
 // data/logic on this App struct.
 type App struct {
+	mw []MidHandler
 	*http.ServeMux
 	shutdown chan os.Signal
 }
 
 // NewApp creates an App value that handle a set of routes for the application.
-func NewApp(shutdown chan os.Signal) *App {
+func NewApp(shutdown chan os.Signal, mw ...MidHandler) *App {
 	return &App{
+		mw:       mw,
 		ServeMux: http.NewServeMux(),
 		shutdown: shutdown,
 	}
@@ -30,7 +32,10 @@ func NewApp(shutdown chan os.Signal) *App {
 
 // HandlerFunc sets a handler function for a given HTTP method and path pair
 // to the application server mux.
-func (a *App) HandlerFunc(pattern string, handler Handler) {
+func (a *App) HandlerFunc(pattern string, handler Handler, mw ...MidHandler) {
+	handler = wrapMiddleware(mw, handler)
+	handler = wrapMiddleware(a.mw, handler)
+
 	h := func(w http.ResponseWriter, r *http.Request) {
 		err := handler(r.Context(), w, r)
 		if err != nil {
