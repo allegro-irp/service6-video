@@ -1,9 +1,11 @@
 package checkapi
 
-import "net/http"
+import (
+	"github.com/allegro-irp/service6-video/foundation/web"
+)
 
 // Routes adds specific routes for this group.
-func Routes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /liveness", liveness)
-	mux.HandleFunc("GET /readiness", readiness)
+func Routes(app *web.App) {
+	app.HandlerFunc("GET /liveness", liveness)
+	app.HandlerFunc("GET /readiness", readiness)
 }
